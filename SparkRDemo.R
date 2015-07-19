@@ -1,8 +1,8 @@
-# This is a Demo for using SparkR 
+# This is a Demo for using SparkR
 
 # setup SparkR env
-Sys.setenv(SPARK_HOME='/opt/spark-1.4.1-bin-2.0.0-cdh4.6.0')
-Sys.setenv(SPARK_YARN_QUEUE="bi")
+Sys.setenv(SPARK_HOME = '/opt/spark-1.4.1-bin-2.0.0-cdh4.6.0')
+Sys.setenv(SPARK_YARN_QUEUE = "bi")
 library("SparkR")
 
 # init SparkR
@@ -10,7 +10,9 @@ sc = sparkR.init()
 hiveContext = sparkRHive.init(sc)
 
 # count cookies by province
-cookiesByProvinceid_df = sql(hiveContext, "select geo_info.province as provinceid, count(cookie) as cookies from mediav_base.d_clickvalue where date='2015-07-07' and geo_info.country=1 group by geo_info.province")
+cookiesByProvinceid_df = sql(
+  hiveContext, "select geo_info.province as provinceid, count(cookie) as cookies from mediav_base.d_clickvalue where date='2015-07-07' and geo_info.country=1 group by geo_info.province"
+)
 
 cache(cookiesByProvinceid_df)
 head(cookiesByProvinceid_df)
@@ -18,7 +20,9 @@ head(cookiesByProvinceid_df)
 registerTempTable(cookiesByProvinceid_df,"cookiesByProvinceid")
 
 # join mediav_base_location for provincename and geoid
-cookiesByProvicename_df = sql(hiveContext,"select c.provinceid, c.cookies, l.en, l.geoid from cookiesByProvinceid c left join mysql.mediav_base_location l on c.provinceid=l.ID")
+cookiesByProvicename_df = sql(
+  hiveContext,"select c.provinceid, c.cookies, l.en, l.geoid from cookiesByProvinceid c left join mysql.mediav_base_location l on c.provinceid=l.ID"
+)
 
 cache(cookiesByProvicename_df)
 cookiesByProvicename = collect(cookiesByProvicename_df)
@@ -41,12 +45,12 @@ library(plyr)
 gpclibPermit()
 
 # load china map data
-china_map = readShapePoly("mapdata/bou2_4p.shp") 
+china_map = readShapePoly("mapdata/bou2_4p.shp")
 # just plot it
 plot(china_map)
 
 x = china_map@data          #get location data
-xs = data.frame(x,id=seq(0:924)-1)          # 925 locations
+xs = data.frame(x,id = seq(0:924) - 1)          # 925 locations
 
 china_map1 = fortify(china_map)           # fortify to data frame
 
@@ -59,19 +63,24 @@ head(china_map_data)
 head(cookiesByProvicename_withADCODE99)
 
 # join china_map_data with our cookies distribution data
-cookiesByProvicename_map_data = join(china_map_data,cookiesByProvicename_withADCODE99, type="right")
+cookiesByProvicename_map_data = join(china_map_data,cookiesByProvicename_withADCODE99, type =
+                                       "right")
 
 head(cookiesByProvicename_map_data)
 
 # clean up NA
-cookiesByProvicename_map_data[is.na(cookiesByProvicename_map_data)] <- 0
+cookiesByProvicename_map_data[is.na(cookiesByProvicename_map_data)] <-
+  0
 
 # plot it, this is the final map of cookies distribution of china by province
-viz = ggplot(cookiesByProvicename_map_data, aes(x = long, y = lat, group = group,fill = cookies)) +
-  geom_polygon(colour="grey40") +
-  scale_fill_gradient(low="white",high="steelblue") +  #指定渐变填充色，可使用RGB
+viz = ggplot(cookiesByProvicename_map_data, aes(
+  x = long, y = lat, group = group,fill = cookies
+)) +
+  geom_polygon(colour = "grey40") +
+  scale_fill_gradient(low = "white",high = "steelblue") +  #指定渐变填充色，可使用RGB
   coord_map("polyconic") +       #指定投影方式为polyconic，获得常见视角中国地图
-  theme(               #清除不需要的元素
+  theme(
+    #清除不需要的元素
     panel.grid = element_blank(),
     panel.background = element_blank(),
     axis.text = element_blank(),
